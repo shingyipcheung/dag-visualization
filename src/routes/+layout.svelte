@@ -2,6 +2,7 @@
 	import '../app.css';
 
 	import { Toaster } from '$lib/components/ui/sonner';
+	import Footer from './Footer.svelte';
 </script>
 
 <Toaster />
@@ -12,6 +13,8 @@
 	<main class="mx-auto mt-5 box-border flex w-full max-w-7xl flex-1 flex-col p-7">
 		<slot></slot>
 	</main>
+
+	<Footer></Footer>
 </div>
 
 <svelte:head>

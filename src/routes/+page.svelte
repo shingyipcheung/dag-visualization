@@ -130,8 +130,8 @@
 			<h3 class="mb-2 text-lg font-semibold">Nodes</h3>
 			<div class="grid w-full items-center gap-4">
 				<div class="flex flex-col space-y-1.5">
-					<Label for="nodeName">Node Name</Label>
-					<Input placeholder="Node Name" bind:value={newNodeId} />
+					<Label for="nodeID">Node ID</Label>
+					<Input placeholder="A, B, C, D" bind:value={newNodeId} />
 				</div>
 				<div class="flex flex-col space-y-1.5">
 					<Label for="nodeType">Node Type</Label>
