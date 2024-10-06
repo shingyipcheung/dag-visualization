@@ -1,11 +1,13 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
-	import dagre,  { type GraphLabel, type Node, type GraphEdge } from 'dagre';
+	import { untrack, tick } from 'svelte';
+
+	import dagre from 'dagre';
+	import type { GraphLabel, Node, GraphEdge } from 'dagre';
+
 	import * as d3 from 'd3';
 	import { draw } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import { Fullscreen } from 'lucide-svelte';
-	import { tick } from 'svelte';
 
 	type Direction = 'TB' | 'BT' | 'LR' | 'RL';
 
@@ -25,7 +27,8 @@
 	let {
 		graph = { nodes: [], edges: [] },
 		direction = 'LR',
-		nodeOnClick = (_) => {}
+		nodeOnClick = (_) => {
+		}
 	}: {
 		graph?: GraphData;
 		direction?: Direction;

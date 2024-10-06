@@ -20,7 +20,7 @@
 	let selectedNode = $state<Node | null>(null);
 	let newNodeId = $state<string>('');
 	let newNodeType = $state<NodeType>(NODE_TYPES[0]);
-	let newEdge = $state({ from: '', to: '' });
+	let newEdge = $state({ source: '', target: '' });
 
 	function addNode(): void {
 		if (newNodeId && !nodes.hasOwnProperty(newNodeId)) {
@@ -51,22 +51,22 @@
 	}
 
 	function addEdge(): void {
-		if (newEdge.from && newEdge.to && newEdge.from !== newEdge.to) {
-			const fromNode = nodes[newEdge.from];
-			const toNode = nodes[newEdge.to];
+		if (newEdge.source && newEdge.target && newEdge.source !== newEdge.target) {
+			const fromNode = nodes[newEdge.source];
+			const toNode = nodes[newEdge.target];
 			if (fromNode && toNode && !fromNode.children.includes(toNode.id)) {
-				if (hasCycle(newEdge.from, newEdge.to)) {
+				if (hasCycle(newEdge.source, newEdge.target)) {
 					toast.error('Adding this edge would create a cycle, which is not allowed.');
 				} else {
 					fromNode.children.push(toNode.id);
-					newEdge = { from: '', to: '' };
+					newEdge = { source: '', target: '' };
 					toast.success('Edge added successfully.');
 				}
 			} else {
-				toast.error("This edge already exists or nodes don't exist!");
+				toast.error('This edge already exists or nodes don\'t exist!');
 			}
 		} else {
-			toast.error("Please select different nodes for 'from' and 'to'.");
+			toast.error('Please select different nodes for \'from\' and \'to\'.');
 		}
 	}
 
@@ -117,7 +117,8 @@
 	let editOpen = $state(false);
 </script>
 
-<NodeEditor bind:node={selectedNode} bind:open={editOpen} onSuccess={() => toast.success(`Node ${selectedNode?.id} has been updated.`)}></NodeEditor>
+<NodeEditor bind:node={selectedNode} bind:open={editOpen}
+						onSuccess={() => toast.success(`Node ${selectedNode?.id} has been updated.`)}></NodeEditor>
 <div class="flex space-x-4">
 	<Card.Root class="w-[300px] shadow-lg">
 		<Card.Header>
@@ -143,28 +144,30 @@
 					/>
 				</div>
 				<Button on:click={addNode} class="w-full">
-					<PlusCircle class="mr-2 h-4 w-4" /> Add Node
+					<PlusCircle class="mr-2 h-4 w-4" />
+					Add Node
 				</Button>
 			</div>
 			<div class="mt-4">
 				<h3 class="mb-2 text-lg font-semibold">Edges</h3>
 				<div class="mb-2 flex w-full flex-row items-center space-x-2">
 					<Combobox
-						bind:value={newEdge.from}
+						bind:value={newEdge.source}
 						options={nodeOptions}
 						placeholder="source"
 						searchPlaceholder="Search nodes..."
 					/>
 					<ArrowRight class="h-12 w-12"></ArrowRight>
 					<Combobox
-						bind:value={newEdge.to}
+						bind:value={newEdge.target}
 						options={nodeOptions}
 						placeholder="target"
 						searchPlaceholder="Search nodes..."
 					/>
 				</div>
 				<Button on:click={addEdge} class="w-full">
-					<Link class="mr-2 h-4 w-4" /> Add Edge
+					<Link class="mr-2 h-4 w-4" />
+					Add Edge
 				</Button>
 			</div>
 		</Card.Content>
