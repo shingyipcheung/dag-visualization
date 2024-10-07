@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --font-family: "JetBrains Mono", monospace;
+    --font-family: "Rubik", sans-serif;;
     font-family: var(--font-family), serif;
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;

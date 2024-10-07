@@ -19,7 +19,7 @@
 
 <svelte:head>
 	<style>
-		@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
 	</style>
 </svelte:head>
 
