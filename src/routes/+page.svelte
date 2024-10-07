@@ -8,14 +8,16 @@
 	import data from './data';
 	import { toast } from 'svelte-sonner';
 	import Combobox from '$lib/Combobox.svelte';
-	import GraphChart from './GraphSVG.svelte';
+	import GraphSVG from './GraphSVG.svelte';
 	import type { NodeType, Node } from './types';
 	import Separator from '$lib/Separator.svelte';
 	import NodeEditor from './NodeEditor.svelte';
+	import { Graph } from './graph.svelte.js';
 	import { NODE_TYPES } from './types.js';
 
-	let nodes = $state<Record<string, Node>>({});
-	let nodeOptions = $derived<string[]>(Object.keys(nodes));
+	let graph = $state(new Graph({}));
+
+	let nodeData: Record<string, any> = $state({});
 
 	let selectedNode = $state<Node | null>(null);
 	let newNodeId = $state<string>('');
@@ -23,102 +25,59 @@
 	let newEdge = $state({ source: '', target: '' });
 
 	function addNode(): void {
-		if (newNodeId && !nodes.hasOwnProperty(newNodeId)) {
-			nodes[newNodeId] = { id: newNodeId, data: { type: newNodeType, tags: {} }, children: [] };
-			newNodeId = '';
-			toast.success('Node added successfully.');
-		} else if (!newNodeId) {
-			toast.error('Failed to add node: Node ID cannot be empty.');
-		} else {
-			toast.error(`Failed to add node: A node with ID "${newNodeId}" already exists.`);
-		}
-	}
-
-	function hasCycle(start: string, end: string): boolean {
-		const visited = new Set<string>();
-		const stack = [end];
-
-		while (stack.length > 0) {
-			const current = stack.pop()!;
-			if (current === start) return true;
-			if (!visited.has(current)) {
-				visited.add(current);
-				stack.push(...(nodes[current]?.children || []));
+		try {
+			if (newNodeId) {
+				graph.addNode(newNodeId);
+				toast.success(`Node ${newNodeId} added successfully.`);
+			} else {
+				toast.error('Failed to add node: Node ID cannot be empty.');
+			}
+		} catch (error) {
+			if (error instanceof Error) {
+				toast.error(error.message);
 			}
 		}
-
-		return false;
 	}
 
 	function addEdge(): void {
-		if (newEdge.source && newEdge.target && newEdge.source !== newEdge.target) {
-			const fromNode = nodes[newEdge.source];
-			const toNode = nodes[newEdge.target];
-			if (fromNode && toNode && !fromNode.children.includes(toNode.id)) {
-				if (hasCycle(newEdge.source, newEdge.target)) {
+		try {
+			if (newEdge.source && newEdge.target && newEdge.source !== newEdge.target) {
+				if (graph.hasCycle(newEdge.source, newEdge.target)) {
 					toast.error('Adding this edge would create a cycle, which is not allowed.');
 				} else {
-					fromNode.children.push(toNode.id);
+					graph.addEdge(newEdge.source, newEdge.target);
 					newEdge = { source: '', target: '' };
 					toast.success('Edge added successfully.');
 				}
 			} else {
-				toast.error('This edge already exists or nodes don\'t exist!');
+				toast.error("Please select different nodes for 'from' and 'to'.");
 			}
-		} else {
-			toast.error('Please select different nodes for \'from\' and \'to\'.');
+		} catch (error) {
+			if (error instanceof Error) {
+				toast.error(error.message);
+			}
 		}
 	}
 
-	// function removeNode(nodeId: string): void {
-	// 	const nodeToRemove = nodes[nodeId];
-	// 	if (nodeToRemove) {
-	// 		delete nodes[nodeId];
-	// 		// Remove edges pointing to this node
-	// 		for (let node of Object.values(nodes)) {
-	// 			node.children = node.children.filter((child) => child !== nodeToRemove.id);
-	// 		}
-	// 	}
-	// }
-	//
-	// function removeEdge(from: string, to: string): void {
-	// 	const fromNode = nodes[from];
-	// 	if (fromNode) {
-	// 		fromNode.children = fromNode.children.filter((child) => child !== to);
-	// 	}
-	// }
-	//
-	// function getParentNodes(nodeId: string): string[] {
-	// 	return Object.values(nodes)
-	// 		.filter((node) => node.children.includes(nodeId))
-	// 		.map((node) => node.id);
-	// }
-	//
-	// function getChildNodes(nodeId: string): string[] {
-	// 	const node = nodes[nodeId];
-	// 	return node ? [...node.children] : [];
-	// }
-
-	let graphData = $derived({
-		nodes: Object.values(nodes).map((node) => ({ id: node.id, ref: node })),
-		edges: Object.values(nodes).flatMap((node) =>
-			node.children.map((child) => ({ source: node.id, target: child }))
-		)
-	});
-
 	function loadSampleData() {
-		nodes = data;
+		graph = new Graph(data.graph);
+		nodeData = data.nodeData;
 	}
 
 	function clear() {
-		nodes = {};
+		graph.clear();
+		nodeData = {};
 	}
 
 	let editOpen = $state(false);
 </script>
 
-<NodeEditor bind:node={selectedNode} bind:open={editOpen}
-						onSuccess={() => toast.success(`Node ${selectedNode?.id} has been updated.`)}></NodeEditor>
+<NodeEditor
+	bind:node={selectedNode}
+	bind:open={editOpen}
+	onSuccess={() => toast.success(`Node ${selectedNode?.id} has been updated.`)}
+></NodeEditor>
+
 <div class="flex space-x-4">
 	<Card.Root class="w-[300px] shadow-lg">
 		<Card.Header>
@@ -127,6 +86,7 @@
 			<Button variant="outline" onclick={loadSampleData}>Load Sample Graph</Button>
 		</Card.Header>
 		<Separator />
+
 		<Card.Content class="pt-0">
 			<h3 class="mb-2 text-lg font-semibold">Nodes</h3>
 			<div class="grid w-full items-center gap-4">
@@ -153,14 +113,14 @@
 				<div class="mb-2 flex w-full flex-row items-center space-x-2">
 					<Combobox
 						bind:value={newEdge.source}
-						options={nodeOptions}
+						options={graph.nodes}
 						placeholder="source"
 						searchPlaceholder="Search nodes..."
 					/>
 					<ArrowRight class="h-12 w-12"></ArrowRight>
 					<Combobox
 						bind:value={newEdge.target}
-						options={nodeOptions}
+						options={graph.nodes}
 						placeholder="target"
 						searchPlaceholder="Search nodes..."
 					/>
@@ -179,13 +139,11 @@
 		</Card.Footer>
 	</Card.Root>
 
-	<div class="max-h-[600px] grow overflow-hidden rounded-lg border shadow-lg">
-		<GraphChart
-			graph={graphData}
-			nodeOnClick={(id) => {
-				editOpen = true;
-				selectedNode = nodes[id];
-			}}
-		></GraphChart>
-	</div>
+	<GraphSVG
+		graph={graph.graphData}
+		nodeOnClick={(id) => {
+			editOpen = true;
+			selectedNode = nodeData[id];
+		}}
+	></GraphSVG>
 </div>
