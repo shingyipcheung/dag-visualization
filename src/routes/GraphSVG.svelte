@@ -83,7 +83,7 @@
 		graph.nodes.forEach((node) => {
 			g.setNode(node.id, {
 				label: node.id,
-				width: 60,
+				width: Math.max(node.id.length * 10 + 20, 60),
 				height: 40,
 				style: {}
 			});
