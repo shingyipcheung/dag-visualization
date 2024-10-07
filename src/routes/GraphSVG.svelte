@@ -27,8 +27,7 @@
 	let {
 		graph = { nodes: [], edges: [] },
 		direction = 'LR',
-		nodeOnClick = (_) => {
-		}
+		nodeOnClick = (_) => {}
 	}: {
 		graph?: GraphData;
 		direction?: Direction;
@@ -253,79 +252,81 @@
 	}
 </script>
 
-{#if isEmpty}
-	<div class="flex h-full items-center justify-center text-sm text-gray-400">
-		<p>No graph data.</p>
-	</div>
-{:else}
-	<div class="relative h-full w-full overscroll-contain">
-		<svg width={svgWidth} height={svgHeight} class="overflow-hidden" bind:this={svgElement}>
-			<g bind:this={zoomGroup}>
-				<defs>
-					<marker
-						id="arrowhead"
-						viewBox="-0 -5 10 10"
-						refX="8"
-						refY="0"
-						orient="auto"
-						markerWidth="6"
-						markerHeight="6"
-						overflow="visible"
-					>
-						<path d="M 0,-5 L 10,0 L 0,5" fill="#999" stroke="none" />
-					</marker>
-				</defs>
+<div class="max-h-[600px] grow overflow-hidden rounded-lg border shadow-lg">
+	{#if isEmpty}
+		<div class="flex h-full items-center justify-center text-sm text-gray-400">
+			<p>No graph data.</p>
+		</div>
+	{:else}
+		<div class="relative h-full w-full overscroll-contain">
+			<svg width={svgWidth} height={svgHeight} class="overflow-hidden" bind:this={svgElement}>
+				<g bind:this={zoomGroup}>
+					<defs>
+						<marker
+							id="arrowhead"
+							viewBox="-0 -5 10 10"
+							refX="8"
+							refY="0"
+							orient="auto"
+							markerWidth="6"
+							markerHeight="6"
+							overflow="visible"
+						>
+							<path d="M 0,-5 L 10,0 L 0,5" fill="#999" stroke="none" />
+						</marker>
+					</defs>
 
-				{#each edges as edge (edge.source + '-' + edge.target)}
-					<path
-						bind:this={edgeDOMs[edge.source + '-' + edge.target]}
-						transition:draw={{ duration: 500, easing: quintOut }}
-						class="edge"
-						d={curveFunc(edge.points)}
-						fill="none"
-						stroke="#999"
-						stroke-width="1"
-						marker-end="url(#arrowhead)"
-					/>
-				{/each}
-
-				{#each nodes as node (node.id)}
-					<!-- svelte-ignore a11y_no_static_element_interactions -->
-					<!-- svelte-ignore a11y_mouse_events_have_key_events -->
-					<!-- svelte-ignore a11y_click_events_have_key_events -->
-					<g
-						bind:this={nodeDOMs[node.id]}
-						data-node-id={node.id}
-						class="select-none transition duration-500 ease-in-out"
-						transform="translate({node.x},{node.y})"
-						onmouseover={() => onHover(node.id)}
-						onmouseout={() => onMouseOut(node.id)}
-						onclick={() => nodeOnClick(node.id)}
-					>
-						<rect
-							width={node.width}
-							height={node.height}
-							x={-node.width / 2}
-							y={-node.height / 2}
-							fill="lightgray"
-							stroke="black"
+					{#each edges as edge (edge.source + '-' + edge.target)}
+						<path
+							bind:this={edgeDOMs[edge.source + '-' + edge.target]}
+							transition:draw={{ duration: 500, easing: quintOut }}
+							class="edge"
+							d={curveFunc(edge.points)}
+							fill="none"
+							stroke="#999"
 							stroke-width="1"
-							rx="3"
-							ry="3"
+							marker-end="url(#arrowhead)"
 						/>
-						<text text-anchor="middle" dominant-baseline="central" fill="black">
-							{node.label || node.id}
-						</text>
-					</g>
-				{/each}
-			</g>
-		</svg>
-		<button
-			class="absolute bottom-4 right-4 rounded-full bg-gray-200 p-2 text-gray-700 transition-colors duration-200 ease-in-out hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50"
-			onclick={resetZoom}
-			aria-label="Reset zoom"
-		>
-			<Fullscreen size={16} />
-		</button>
-	</div>
-{/if}
+					{/each}
+
+					{#each nodes as node (node.id)}
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
+						<!-- svelte-ignore a11y_mouse_events_have_key_events -->
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<g
+							bind:this={nodeDOMs[node.id]}
+							data-node-id={node.id}
+							class="select-none transition duration-500 ease-in-out"
+							transform="translate({node.x},{node.y})"
+							onmouseover={() => onHover(node.id)}
+							onmouseout={() => onMouseOut(node.id)}
+							onclick={() => nodeOnClick(node.id)}
+						>
+							<rect
+								width={node.width}
+								height={node.height}
+								x={-node.width / 2}
+								y={-node.height / 2}
+								fill="lightgray"
+								stroke="black"
+								stroke-width="1"
+								rx="3"
+								ry="3"
+							/>
+							<text text-anchor="middle" dominant-baseline="central" fill="black">
+								{node.label || node.id}
+							</text>
+						</g>
+					{/each}
+				</g>
+			</svg>
+			<button
+				class="absolute bottom-4 right-4 rounded-full bg-gray-200 p-2 text-gray-700 transition-colors duration-200 ease-in-out hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50"
+				onclick={resetZoom}
+				aria-label="Reset zoom"
+			>
+				<Fullscreen size={16} />
+			</button>
+		</div>
+	{/if}
+</div>
