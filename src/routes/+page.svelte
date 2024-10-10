@@ -28,6 +28,7 @@
 		try {
 			if (newNodeId) {
 				graph.addNode(newNodeId);
+				nodeData[newNodeId] = { id: newNodeId, type: newNodeType, tags: {} };
 				toast.success(`Node ${newNodeId} added successfully.`);
 			} else {
 				toast.error('Failed to add node: Node ID cannot be empty.');
